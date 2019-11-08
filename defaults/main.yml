@@ -6,3 +6,9 @@ net_dns: 8.8.8.8
 net_ipaddr: 10.0.0.1
 net_prefix: 24
 net_gateway: "{{ net_dns }}"
+
+iso_src: /tmp/iso_mnt
+iso_working_path: "{{ working_path }}/iso/{{ inventory_hostname_short }}"
+iso_delegate_to: ""
+iso_output_file: "{{ working_path }}/rhcos-x86_64-installer-{{ inventory_hostname_short}}.iso"
+iso_kernel_params: "coreos.inst=yes"

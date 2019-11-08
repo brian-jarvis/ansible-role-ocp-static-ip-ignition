@@ -1,0 +1,47 @@
+- name: "Create working copy of iso image"
+  delegate_to: "{{ iso_delegate_to }}"
+  copy:
+      dest: "{{ iso_working_path }}"
+      src: "{{ iso_mnt_path }}/"
+      remote_src: yes
+
+- name: "Replace default install menu"
+  delegate_to: "{{ iso_delegate_to }}"
+  replace:
+    path: "{{ item }}"
+    regexp: "default vesamenu.c32"
+    replace: "default linux"
+  loop:
+    - "{{ iso_working_path }}/isolinux/isolinux.cfg"
+    - "{{ iso_working_path }}/EFI/redhat/grub.cfg"
+
+- name: "Replace timeout"
+  delegate_to: "{{ iso_delegate_to }}"
+  replace:
+    path: "{{ item }}"
+    regexp: "timeout 600"
+    replace: "timeout 10"
+  loop:
+    - "{{ iso_working_path }}/isolinux/isolinux.cfg"
+    - "{{ iso_working_path }}/EFI/redhat/grub.cfg"
+
+- name: "Replace timeout"
+  delegate_to: "{{ iso_delegate_to }}"
+  replace:
+    path: "{{ item }}"
+    regexp: 'coreos.inst=yes.*$'
+    replace: "{{ iso_kernel_params }}"
+  loop:
+    - "{{ iso_working_path }}/isolinux/isolinux.cfg"
+    - "{{ iso_working_path }}/EFI/redhat/grub.cfg"
+
+- name: Create new ISO image
+  delegate_to: "{{ iso_delegate_to }}"
+  become: true
+  args:
+    chdir: "{{ iso_working_path }}"
+  command: >
+      /usr/bin/mkisofs -U -A 'RHCOS-x86_64' -V 'RHCOS-x86_64' -volset 'RHCOS-x86_64' -J -joliet-long -r -v -T 
+        -x ./lost+found -o {{ iso_output_file }} -b isolinux/isolinux.bin  
+        -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img 
+        -no-emul-boot .
