@@ -29,3 +29,9 @@
   command: >
     {{ working_path}}/filetranspiler --ignition "{{ ignition_base }}" --output "{{ ignition_out }}" --fake-root {{ fake_root }}
 
+- name: "Update config path to pull from api server based on ignition tyep"
+  replace:
+    path: "{{ ignition_out }}"
+    regexp: "{{ ignition_file_base_type }}"
+    replace: " {{ ignition_file_type }}"
+  when: ignition_file_base_type != ignition_file_type
